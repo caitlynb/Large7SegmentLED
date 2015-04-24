@@ -5,7 +5,7 @@ char_height = 177.8;
 wall_thickness = 2;
 
 // Which part would you like to see?
-part = "both"; // [both:Diffused Segments and Case,case:Case Only,diffuse:Diffused Segments Only]
+part = "DigitParts"; // [DigitParts:Diffused 'Lenses' and Case,DigitCase:Case Only,DigitLens:Diffused Segments Only]
 
 // *Percent* of char_height that the segment's width will be.
 segment_width = 15; //[5:30]
@@ -45,12 +45,12 @@ case_y_out = segheight + segwidth/2 + walltriangle*2 + wall_thickness;
 print_part();
 
 module print_part(){
-    if(part == "both"){
+    if(part == "DigitParts"){
         diffuse_segments();
         case();
-    } else if (part == "case"){
+    } else if (part == "DigitCase"){
         case();
-    } else {
+    } else if (part == "DigitLens"){
         diffuse_segments();
     }
 }
