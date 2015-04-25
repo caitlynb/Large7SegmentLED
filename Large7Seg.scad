@@ -2,10 +2,10 @@
 char_height = 177.8;
 
 // Wall Thickness in mm
-wall_thickness = 2;
+wall_thickness = 1.6;
 
 // Which part would you like to see?
-part = "DigitParts"; // [DigitParts:Diffused 'Lenses' and Case,DigitCase:Case Only,DigitLens:Diffused Segments Only]
+part = "DigitCase"; // [DigitParts:Diffused 'Lenses' and Case,DigitCase:Case Only,DigitLens:Diffused Segments Only]
 
 // *Percent* of char_height that the segment's width will be.
 segment_width = 15; //[5:30]
@@ -13,7 +13,7 @@ segment_width = 15; //[5:30]
 // How thick (from the mounting surface) should the case be?
 char_thick = 15;
 
-// How thick should the diffusion layer be? (mm)
+// How thick should the lens layer be? (mm)
 diff_thick = 1;
 
 // What is the Tap Drill size of the screws you will mount with?  (mm)
@@ -29,7 +29,7 @@ chamfer = true;  // [true,false]
 mounting_holes = true; // [true,false]
 
 // Where would you like the holes placed?
-hole_type = "corners";  // [topbottom,corners,centersides,insides]
+mounting_type = "centersides";  // [topbottom,corners,centersides,insides]
 
 
 
@@ -50,8 +50,39 @@ module print_part(){
         case();
     } else if (part == "DigitCase"){
         case();
+        if (mounting_holes == true){
+            if(mounting_type == "centersides"){
+                sidetabs();
+            }
+        }
     } else if (part == "DigitLens"){
         diffuse_segments();
+    }
+    
+            
+    
+}
+
+module sidetabs(){
+    difference(){
+        translate([0,0,char_thick-wall_thickness]){
+            linear_extrude(height=wall_thickness){
+                polygon([[segheight/2,0],
+                    [case_x_out, -segwidth/2-wall_thickness],
+                    [case_x_out, segwidth/2+wall_thickness]]);
+                polygon([[-segheight/2, 0],
+                    [-case_x_out, -segwidth/2 -wall_thickness],
+                    [-case_x_out, segwidth/2+wall_thickness]]);
+            }
+        }
+        translate([-segheight/2-segwidth/2+wall_thickness,0,char_thick])
+        cylinder(r=tap_hole_size,h=1, center=true);
+        translate([-segheight/2-segwidth/2+wall_thickness,0,char_thick])
+        cylinder(r=1,h=1.5, center=true);
+        translate([segheight/2+segwidth/2-wall_thickness,0,char_thick])
+        cylinder(r=tap_hole_size,h=1, center=true);
+        translate([segheight/2+segwidth/2-wall_thickness,0,char_thick])
+        cylinder(r=1,h=1.5, center=true);
     }
 }
 
@@ -88,24 +119,29 @@ module case_cutouts(){
 }
 
 module chamfered_case(){
-    polygon( points = [
-        [-segheight/2-walltriangle*2, 0], 
-        [-case_x_out, segwidth/2],
-        [-case_x_out, segheight-segwidth/2 + walltriangle*2], 
-        [-segheight/2 +segwidth/2 -walltriangle, case_y_out],
-        [segheight/2 - segwidth/2 + walltriangle, case_y_out],
-        [case_x_out, segheight-segwidth/2 + walltriangle*2],
-        [case_x_out, segwidth/2],
-        [segheight/2+walltriangle*2, 0],
-        [case_x_out, -segwidth/2],
-        [case_x_out, -segheight+segwidth/2-walltriangle*2],
-        [segheight/2 - segwidth/2 + walltriangle, -case_y_out],
-        [-segheight/2 + segwidth/2 - walltriangle, -case_y_out],
-        [-case_x_out, -segheight + segwidth/2 - walltriangle*2],
-        [-case_x_out, -segwidth/2]
-    ], paths = [
-        [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
-    ]);
+	/* Old polygon - close, but not perfect
+	polygon( points = [
+	        [-segheight/2-walltriangle*2, 0], 
+	        [-case_x_out, segwidth/2],
+	        [-case_x_out, segheight-segwidth/2 + walltriangle*2], 
+	        [-segheight/2 +segwidth/2 -walltriangle, case_y_out],
+	        [segheight/2 - segwidth/2 + walltriangle, case_y_out],
+	        [case_x_out, segheight-segwidth/2 + walltriangle*2],
+	        [case_x_out, segwidth/2],
+	        [segheight/2+walltriangle*2, 0],
+	        [case_x_out, -segwidth/2],
+	        [case_x_out, -segheight+segwidth/2-walltriangle*2],
+	        [segheight/2 - segwidth/2 + walltriangle, -case_y_out],
+	        [-segheight/2 + segwidth/2 - walltriangle, -case_y_out],
+	        [-case_x_out, -segheight + segwidth/2 - walltriangle*2],
+	        [-case_x_out, -segwidth/2]
+	    ], paths = [
+	        [0,1,2,3,4,5,6,7,8,9,10,11,12,13]
+	    ]);
+	*/
+	offset(r=wall_thickness){
+		segments_poly();
+	}
 }
 
 module straight_case(){
