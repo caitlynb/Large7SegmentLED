@@ -1,5 +1,5 @@
 // Character Height.  Default = 7".  Includes wall thickness (below) in this measurement.  But does not include screws, if you mount them at the top/bottom edges.
-char_height = 177.8;
+char_height = 200;
 
 // Wall Thickness in mm
 wall_thickness = 1.6;
@@ -11,10 +11,10 @@ part = "DigitCase"; // [DigitParts:Diffused 'Lenses' and Case,DigitCase:Case Onl
 segment_width = 15; //[5:30]
 
 // How thick (from the mounting surface) should the case be?
-char_thick = 15;
+char_thick = 25;
 
 // How thick should the lens layer be? (mm)
-diff_thick = 1;
+diff_thick = 1.2;
 
 // What is the Tap Drill size of the screws you will mount with?  (mm)
 tap_hole_size = 3.454;
@@ -23,15 +23,16 @@ tap_hole_size = 3.454;
 cutouts = true;   // [true,false]
 
 // should the case follow the edge of the segments?
-chamfer = true;  // [true,false]
+chamfer = false;  // [true,false]
 
 // do you want mounting holes?
 mounting_holes = true; // [true,false]
 
 // Where would you like the holes placed?
-mounting_type = "centersides";  // [topbottom,corners,centersides,insides]
+mounting_type = "corners";  // [topbottom,corners,centersides,insides]
 
-
+// Do you want the digit to expand the case size?
+expand_case = true; // [true,false]
 
 
 segwidth = char_height * segment_width / 100;
@@ -49,10 +50,16 @@ module print_part(){
         diffuse_segments();
         case();
     } else if (part == "DigitCase"){
-        case();
         if (mounting_holes == true){
             if(mounting_type == "centersides"){
+                case();
                 sidetabs();
+            }
+            if(mounting_type == "corners"){
+                difference(){
+                    case();
+                    cornertaps();
+                }
             }
         }
     } else if (part == "DigitLens"){
@@ -76,14 +83,31 @@ module sidetabs(){
             }
         }
         translate([-segheight/2-segwidth/2+wall_thickness,0,char_thick])
-        cylinder(r=tap_hole_size,h=1, center=true);
+        cylinder(r=tap_hole_size/2,h=1, center=true);
         translate([-segheight/2-segwidth/2+wall_thickness,0,char_thick])
         cylinder(r=1,h=1.5, center=true);
         translate([segheight/2+segwidth/2-wall_thickness,0,char_thick])
-        cylinder(r=tap_hole_size,h=1, center=true);
+        cylinder(r=tap_hole_size/2,h=1, center=true);
         translate([segheight/2+segwidth/2-wall_thickness,0,char_thick])
         cylinder(r=1,h=1.5, center=true);
     }
+}
+
+module cornertaps(){
+    tapx = case_x_out - wall_thickness - tap_hole_size*2;
+    tapy = case_y_out - wall_thickness - tap_hole_size*2;
+    translate([tapx,0,char_thick/2+1])
+    cylinder(r=tap_hole_size/2, h=char_thick, center=true, $fs = 1);
+    translate([-tapx,0,char_thick/2+1])
+    cylinder(r=tap_hole_size/2, h=char_thick, center=true, $fs = 1);
+    translate([tapx,tapy,char_thick/2+1])
+    cylinder(r=tap_hole_size/2, h=char_thick, center=true, $fs = 1);
+    translate([-tapx,tapy,char_thick/2+1])
+    cylinder(r=tap_hole_size/2, h=char_thick, center=true, $fs = 1);
+    translate([tapx,-tapy,char_thick/2+1])
+    cylinder(r=tap_hole_size/2, h=char_thick, center=true, $fs = 1);
+    translate([-tapx,-tapy,char_thick/2+1])
+    cylinder(r=tap_hole_size/2, h=char_thick, center=true, $fs = 1);
 }
 
 module case(){
