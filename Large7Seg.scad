@@ -1,11 +1,11 @@
 // Character Height.  Default = 7".  Includes wall thickness (below) in this measurement.  But does not include screws, if you mount them at the top/bottom edges.
-char_height = 200;
+char_height = 75;
 
 // Wall Thickness in mm
 wall_thickness = 1.6;
 
 // Which part would you like to see?
-part = "DigitCase"; // [DigitParts:Diffused 'Lenses' and Case,DigitCase:Case Only,DigitLens:Diffused Segments Only]
+part = "Clock"; // [DigitParts:Diffused 'Lenses' and Case,DigitCase:Case Only,DigitLens:Diffused Segments Only]
 
 // *Percent* of char_height that the segment's width will be.
 segment_width = 15; //[5:30]
@@ -17,7 +17,7 @@ char_thick = 25;
 diff_thick = 1.2;
 
 // What is the Tap Drill size of the screws you will mount with?  (mm)
-tap_hole_size = 3.454;
+tap_hole_size = 2.26;
 
 // Do you want the centers of the 8 removed?
 cutouts = true;   // [true,false]
@@ -41,9 +41,34 @@ segheight = (char_height - wall_thickness * 2 - segwidth - walltriangle * 4) / 2
 segriser = segheight - segwidth;
 case_x_out = segheight/2 + segwidth/2 + walltriangle + wall_thickness;
 case_y_out = segheight + segwidth/2 + walltriangle*2 + wall_thickness;
-
+spacer_x = segwidth/4+wall_thickness*2;
+dot_x = segwidth/2+wall_thickness*2;
+//tapx = case_x_out - wall_thickness - tap_hole_size*2;
+//tapy = case_y_out - wall_thickness - tap_hole_size*2;
+tapx = case_x_out - tap_hole_size*1.5;
+tapy = case_y_out - tap_hole_size*1.5;
 
 print_part();
+
+module clockcase(){
+    translate([-case_x_out*2-spacer_x-dot_x+wall_thickness*2,0,0])doublecase();
+    translate([case_x_out*2+spacer_x+dot_x-wall_thickness*2,0,0])doublecase();
+    dotscase();
+}
+
+module doublecase(){
+    spacercase();
+    translate([-case_x_out-spacer_x+wall_thickness,0,0])
+        difference(){
+            case();
+            cornertaps();
+        };
+    translate([case_x_out+spacer_x-wall_thickness,0,0])
+        difference(){
+            case();
+            cornertaps();
+        };
+}
 
 module print_part(){
     if(part == "DigitParts"){
@@ -64,11 +89,87 @@ module print_part(){
         }
     } else if (part == "DigitLens"){
         diffuse_segments();
+    } else if (part == "Spacer") {
+        spacer();
+    } else if (part == "Dots") {
+        dots();
+    } else if (part == "Clock") {
+        clockcase();
     }
+    
     
             
     
 }
+
+module spacercase(){
+    difference(){
+        linear_extrude(height=char_thick)
+        polygon([[spacer_x, case_y_out],
+            [spacer_x, -case_y_out],
+            [-spacer_x, -case_y_out],
+            [-spacer_x, case_y_out]]);
+        translate([0,0,diff_thick])linear_extrude(height=char_thick)
+        polygon([[spacer_x-wall_thickness, case_y_out-wall_thickness-segwidth/2],
+            [spacer_x-wall_thickness, -case_y_out+wall_thickness+segwidth/2],
+            [-spacer_x+wall_thickness,-case_y_out+wall_thickness+segwidth/2],
+            [-spacer_x+wall_thickness, case_y_out-wall_thickness-segwidth/2]]);
+        translate([0,tapy,char_thick/2+1])
+        cylinder(r=tap_hole_size/2, h=char_thick, center=true, $fs = 1);
+        translate([0,-tapy,char_thick/2+1])
+        cylinder(r=tap_hole_size/2, h=char_thick, center=true, $fs = 1);
+    }
+}
+
+module dotscase(){
+    difference(){
+        union(){
+            difference(){
+            linear_extrude(height=char_thick)
+            polygon([[dot_x, case_y_out],
+                [dot_x, -case_y_out],
+                [-dot_x, -case_y_out],
+                [-dot_x, case_y_out]]);
+            translate([0,0,diff_thick])linear_extrude(height=char_thick)
+            polygon([[dot_x-wall_thickness, case_y_out-wall_thickness-segwidth/2],
+                [dot_x-wall_thickness, -case_y_out+wall_thickness],
+                [-dot_x+wall_thickness,-case_y_out+wall_thickness],
+                [-dot_x+wall_thickness, case_y_out-wall_thickness-segwidth/2]]);
+            translate([0,tapy,char_thick/2+1])
+            cylinder(r=tap_hole_size/2, h=char_thick, center=true, $fs = 1);
+            }
+            difference(){
+                linear_extrude(height=char_thick)
+                polygon([[dot_x-wall_thickness, -segwidth/3], 
+                    [dot_x-wall_thickness,segwidth/3],
+                    [-dot_x+wall_thickness,segwidth/3],
+                    [-dot_x+wall_thickness,-segwidth/3]]);
+                translate([0,0,char_thick/2+1])
+                cylinder(r=tap_hole_size/2, h=char_thick, center=true, $fs = 1);
+            }
+            translate([0,-segheight/2-walltriangle,0])
+                cylinder(r = segwidth/3+wall_thickness, h=char_thick);
+            translate([0,segheight/2+walltriangle,0])
+                cylinder(r = segwidth/3+wall_thickness, h=char_thick);
+            translate([0,-segheight-walltriangle,0])
+                cylinder(r = segwidth/3+wall_thickness, h=char_thick);
+            translate([0,-segheight/2-walltriangle,char_thick/2])
+                cube(size=[dot_x*2,wall_thickness,char_thick], center=true);
+            translate([0,segheight/2+walltriangle,char_thick/2])
+                cube(size=[dot_x*2,wall_thickness,char_thick], center=true);
+            translate([0,-segheight-walltriangle,char_thick/2])
+                cube(size=[dot_x*2,wall_thickness,char_thick], center=true);
+        }
+        translate([0,-segheight/2-walltriangle,0])
+        cylinder(r = segwidth/3, h=char_thick*3,center=true);
+        translate([0,segheight/2+walltriangle,0])
+        cylinder(r = segwidth/3, h=char_thick*3,center=true);
+        translate([0,-segheight-walltriangle,0])
+        cylinder(r = segwidth/3, h=char_thick*3,center=true);
+    }
+
+}
+
 
 module sidetabs(){
     difference(){
@@ -94,8 +195,6 @@ module sidetabs(){
 }
 
 module cornertaps(){
-    tapx = case_x_out - wall_thickness - tap_hole_size*2;
-    tapy = case_y_out - wall_thickness - tap_hole_size*2;
     translate([tapx,0,char_thick/2+1])
     cylinder(r=tap_hole_size/2, h=char_thick, center=true, $fs = 1);
     translate([-tapx,0,char_thick/2+1])
