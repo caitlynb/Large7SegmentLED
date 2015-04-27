@@ -1,11 +1,13 @@
-// Character Height.  Default = 7".  Includes wall thickness (below) in this measurement.  But does not include screws, if you mount them at the top/bottom edges.
-char_height = 75;
+/* [Basic Parameters] */
+
+// Character Height.  Default = 200mm.  Includes wall thickness (below) in this measurement.
+char_height = 70;
 
 // Wall Thickness in mm
 wall_thickness = 1.6;
 
 // Which part would you like to see?
-part = "Clock"; // [DigitParts:Diffused 'Lenses' and Case,DigitCase:Case Only,DigitLens:Diffused Segments Only]
+part = "DigitParts"; // [DigitParts:Diffused 'Lenses' and Case,DigitCase:Case Only,DigitLens:Diffused Segments Only,Clock:4 Digit Clock]
 
 // *Percent* of char_height that the segment's width will be.
 segment_width = 15; //[5:30]
@@ -15,6 +17,8 @@ char_thick = 25;
 
 // How thick should the lens layer be? (mm)
 diff_thick = 1.2;
+
+/* [Detailed Parameters] */
 
 // What is the Tap Drill size of the screws you will mount with?  (mm)
 tap_hole_size = 2.26;
