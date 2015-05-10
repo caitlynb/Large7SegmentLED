@@ -1,7 +1,7 @@
 /* [Basic Parameters] */
 
 // Character Height.  (Full height of the printed block, not the height of the individual segments.)
-character_height = 175;
+character_height = 150;
 
 // Wall Thickness.  Default = 1.6mm.
 wall_thickness = 1.6;
@@ -10,10 +10,10 @@ wall_thickness = 1.6;
 part = "DigitParts"; // [DigitParts:Diffused Lenses and Case,DigitCase:Case Only,DigitLens:Diffused Segments,Clock4:4 Digit Clock (no lenses),Clock4Lens:4 Digit Clock Lenses,Clock6:6 Digit Clock (no lenses),Clock6Lens:6 Digit Clock Lenses]
 
 // Segment Width:  In mm
-segment_width = 15;
+segment_width = 17;
 
 // How thick should the case be?
-character_thickness = 25;
+character_thickness = 18;
 
 // How thick should a lens be?
 lens_thickness = 1.6;
@@ -24,32 +24,97 @@ lens_thickness = 1.6;
 mount_hole_size = 2.26;
 
 // What type of digits?
-digit_type = 8; // [7:7 Segment,8:7 Segment and Dot,9:7 Segment and Colon,10:7 Segment-Colon-Dot,11:7 Segment-Colon-Dot-Dot,14:Alphanumeric,15:Alphanumeric and Dot,16:Alphanumeric and Colon,17:Alphanumeric-Colon-Dot,18:Alphanumeric-Colon-Dot-Dot]
+digit_type = 7; // [7:7 Segment,8:7 Segment and Dot,9:7 Segment and Colon,10:7 Segment-Colon-Dot,11:7 Segment-Colon-Dot-Dot,14:Alphanumeric,15:Alphanumeric and Dot,16:Alphanumeric and Colon,17:Alphanumeric-Colon-Dot,18:Alphanumeric-Colon-Dot-Dot]
 
 // Slant the digits by how many degrees?
 slant = 10; // [0:25]
 
 // How far should the characters be spaced?
-spacing = 1.5;  // [1:Close Together,1.5:Loose,2:Far Apart
+spacing = 1;  // [1.5:Close Together,2:Loose,2.5:Far Apart
 
 /* [Hidden] */
 
 /* 
  * Example Code
  */
- 
-for (slant = [0,25]){
+single();
+
+module example1(){
+    for (slant = [0,25]){
+        segment_height = (character_height - wall_thickness*2 - segment_width)/cos(slant)/2;
+        translate([slant*8,0,0])
+        difference(){
+            linear_extrude(20)
+            case(segment_height, segment_width, slant, wall_thickness,    spacing, digit_type);
+            translate([0,0,-5])
+            linear_extrude(30){
+                segments_7(segment_height, segment_width, slant, wall_thickness);
+                
+            }
+            translate([segment_height/2+segment_width*1.5+wall_thickness,0,-5])
+            linear_extrude(30){
+                colon(segment_height, segment_width, slant, spacing);
+                dotdot(segment_height, segment_width, slant, spacing);
+            }
+        }
+    }
+}
+
+module example2(){
+    translate([0,character_height*.75,0])
+    clock4(character_height, segment_width, 0, wall_thickness, spacing,         digit_type, character_thickness);
+    translate([0,-character_height*.75,0])
+    clock4(character_height, segment_width, 25, wall_thickness, spacing,         digit_type, character_thickness);
+}
+
+module single(){
     segment_height = (character_height - wall_thickness*2 - segment_width)/cos(slant)/2;
-    translate([slant*8,0,0])
     difference(){
         linear_extrude(20)
-        case(segment_height, segment_width, slant, wall_thickness,    spacing, digit_type);
+        case(segment_height, segment_width, slant, wall_thickness, spacing, digit_type);
         translate([0,0,-5])
         linear_extrude(30){
-            segments_7(segment_height, segment_width, slant, wall_thickness);
-            colon(segment_height, segment_width, slant, spacing);
-            dotdot(segment_height, segment_width, slant, spacing);
+            if(floor(digit_type/7)==1){    
+                segments_7(segment_height, segment_width, slant, wall_thickness);
+            } else {
+                segments_14(segment_height, segment_width, slant, wall_thickness);
+            }
+            
+            for(x = [-1,1]){
+                translate([x*segment_height/3*2*sin(slant),x*segment_height/3*2,0])
+                circle(d = mount_hole_size, $fs=1, center=true);
+                translate([x*(segment_height/2+segment_width/2-mount_hole_size/2),0,0])
+                circle(d = mount_hole_size, $fs=1, center =true);
+            }
         }
+        translate([segment_height/2+segment_width*1.5+wall_thickness,0,-5])
+        linear_extrude(30){
+            if(digit_type%7==1){
+                dot(segment_height,segment_width, slant, spacing);
+            }
+            if(digit_type%7==2){
+                colon(segment_height, segment_width, slant, spacing);
+            }
+            if(digit_type%7==3){
+                dot(segment_height,segment_width, slant, spacing);
+                colon(segment_height, segment_width, slant, spacing);
+            }
+            if(digit_type%7==4){
+                dotdot(segment_height,segment_width, slant, spacing);
+                colon(segment_height, segment_width, slant, spacing);
+            }
+            
+            
+        }
+    }
+}
+
+module slants(){
+    xspace = sin(slant)*character_height;
+    linear_extrude(character_thickness)
+    for(x = [0,180]){
+        rotate(x)
+        polygon([[-xspace,-character_height/2],[-xspace,character_height/2],[-0,character_height/2]]);
     }
 }
 
@@ -136,23 +201,23 @@ module segments_14(segment_height = 100, segment_width = 10, slant=10, wall_thic
 }
 
 module dot(segment_height = 100, segment_width = 10, slant=10, spacing=1){
-    dot_shift_x = (segment_height-segment_width) * sin(slant);
-    translate([segment_height/2 - dot_shift_x + segment_width*(spacing+0.5), cos(slant) * -segment_height + segment_width, 0])
+    dot_shift_x = -(segment_height-segment_width/3) * sin(slant);
+    translate([dot_shift_x, cos(slant) * -segment_height + segment_width/3, 0])
     circle(r = segment_width/1.5, $fs=.5);
 }
 
 module dotdot(segment_height = 100, segment_width = 10, slant=10, spacing=1){
-    dot_shift_x = (segment_height-segment_width) * sin(slant);
+    dot_shift_x = (segment_height-segment_width/3) * sin(slant);
     for( y = [-1,1]){
-        translate([segment_height/2 +y * dot_shift_x + segment_width*(spacing+.5), cos(slant) * y * segment_height - y * segment_width, 0])
-        circle(r = segment_width/1.5, $fs=.5);
+        translate([y * dot_shift_x, cos(slant) * y * segment_height - y * segment_width/3, 0])
+        circle(r = segment_width/1.5, $fs=.5, center=true);
     }
 }
 
 module colon(segment_height = 100, segment_width = 10, slant=10, spacing=1){
     dot_shift_x = segment_height/2 * sin(slant);
     for( y = [-1, 1]){
-        translate([segment_height/2 + y * dot_shift_x + segment_width*(spacing+0.5), 0.5 * cos(slant) * y * segment_height, 0])
+        translate([y * dot_shift_x, 0.5 * cos(slant) * y * segment_height, 0])
         circle(r = segment_width/1.5, $fs=.5);
     }
 }
@@ -174,4 +239,36 @@ module case(segment_height = 100, segment_width = 10, slant=10, wall_thickness=1
             [-segment_height/2 - spacing * segment_width - corner_x, -corner_y]]);
 
     }
+}
+
+module clock4(character_height = 100, segment_width = 10, slant=10, wall_thickness=1.6, spacing = 1, digit_type=7, character_thickness = 10){
+    segment_height = (character_height - wall_thickness*2 - segment_width)/cos(slant)/2;
+    echo(slant=slant);
+    echo(segment_height=segment_height);
+    space_factor1 = segment_height/2 + segment_width*spacing/2+segment_width*1.5/2+wall_thickness;
+    space_factor2 = segment_height+segment_width + segment_width*spacing;
+    box_factor = (segment_height)*sin(slant);
+    echo(box_factor=box_factor);
+    difference(){
+        // Case 
+        linear_extrude(character_thickness)
+        square([space_factor1*4-segment_width+wall_thickness*2+space_factor2*2+box_factor*2
+        ,character_height], center=true);
+        
+        for(x = [-space_factor1 - space_factor2,
+            -space_factor1, space_factor1,
+            space_factor1 + space_factor2]){
+            translate([x,0,-5])
+            linear_extrude(character_thickness+10){
+                segments_7(segment_height, segment_width, slant, wall_thickness);
+            }
+        }
+            
+        translate([0,0,-5])
+        linear_extrude(character_thickness+10){
+            colon(segment_height, segment_width, slant, spacing);
+            dotdot(segment_height, segment_width, slant, spacing);
+        }
+    }
+    
 }
