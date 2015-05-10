@@ -10,7 +10,7 @@ wall_thickness = 1.6;
 part = "DigitParts"; // [DigitParts:Diffused Lenses and Case,DigitCase:Case Only,DigitLens:Diffused Segments,Clock4:4 Digit Clock (no lenses),Clock4Lens:4 Digit Clock Lenses,Clock6:6 Digit Clock (no lenses),Clock6Lens:6 Digit Clock Lenses]
 
 // Segment Width:  In mm
-segment_width = 20;
+segment_width = 15;
 
 // How thick should the case be?
 character_thickness = 25;
@@ -30,27 +30,26 @@ digit_type = 8; // [7:7 Segment,8:7 Segment and Dot,9:7 Segment and Colon,10:7 S
 slant = 10; // [0:25]
 
 // How far should the characters be spaced?
-spacing = 1;  // [1:Close Together,1.5:Loose,2:Far Apart
+spacing = 1.5;  // [1:Close Together,1.5:Loose,2:Far Apart
 
 /* [Hidden] */
-
-segment_height = (character_height - wall_thickness*2 - segment_width)/cos(slant)/2;
-echo (segment_height=segment_height);
-echo (segment_width=segment_width);
 
 /* 
  * Example Code
  */
  
-
-difference(){
-    linear_extrude(20)
-    case(segment_height, segment_width, slant, wall_thickness,    spacing, digit_type);
-    translate([0,0,-5])
-    linear_extrude(30){
-        segments_7(segment_height, segment_width, slant, wall_thickness);
-        colon(segment_height, segment_width, slant, spacing);
-        dotdot(segment_height, segment_width, slant, spacing);
+for (slant = [0,25]){
+    segment_height = (character_height - wall_thickness*2 - segment_width)/cos(slant)/2;
+    translate([slant*8,0,0])
+    difference(){
+        linear_extrude(20)
+        case(segment_height, segment_width, slant, wall_thickness,    spacing, digit_type);
+        translate([0,0,-5])
+        linear_extrude(30){
+            segments_7(segment_height, segment_width, slant, wall_thickness);
+            colon(segment_height, segment_width, slant, spacing);
+            dotdot(segment_height, segment_width, slant, spacing);
+        }
     }
 }
 
